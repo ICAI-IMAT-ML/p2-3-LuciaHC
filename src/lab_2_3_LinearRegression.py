@@ -34,10 +34,12 @@ class LinearRegressor:
         """
         if np.ndim(X) > 1:
             X = X.reshape(1, -1)
+        
+        covariance_matrix = np.cov(X, y, bias=True)  
+        S_xy = covariance_matrix[0, 1]
 
-        # TODO: Train linear regression model with only one coefficient
-        self.coefficients = None
-        self.intercept = None
+        self.coefficients = S_xy/np.var(X)
+        self.intercept = np.mean(y) - np.mean(X)*self.coefficients
 
     # This part of the model you will only need for the last part of the notebook
     def fit_multiple(self, X, y):
@@ -75,8 +77,7 @@ class LinearRegressor:
             raise ValueError("Model is not yet fitted")
 
         if np.ndim(X) == 1:
-            # TODO: Predict when X is only one variable
-            predictions = None
+            predictions = np.array([self.intercept + xi*self.coefficients for xi in X])
         else:
             # TODO: Predict when X is more than one variable
             predictions = None
@@ -93,36 +94,33 @@ def evaluate_regression(y_true, y_pred):
 
     Returns:
         dict: A dictionary containing the R^2, RMSE, and MAE values.
-    """
+    """    
     # R^2 Score
-    # TODO: Calculate R^2
-    r_squared = None
+    y_mean = np.mean(y_true)
+    RSS = np.sum((y_true - y_pred) ** 2)
+    TSS = np.sum((y_true - y_mean) ** 2)
+    r_squared = 1 - (RSS / TSS) if TSS != 0 else 0  
 
     # Root Mean Squared Error
-    # TODO: Calculate RMSE
-    rmse = None
+    rmse = np.sqrt(np.mean((y_true - y_pred) ** 2))
 
     # Mean Absolute Error
-    # TODO: Calculate MAE
-    mae = None
+    mae = np.mean(np.abs(y_true - y_pred))
 
     return {"R2": r_squared, "RMSE": rmse, "MAE": mae}
-
 
 # ### Scikit-Learn comparison
 
 
 def sklearn_comparison(x, y, linreg):
     ### Compare your model with sklearn linear regression model
-    # TODO : Import Linear regression from sklearn
+    from sklearn.linear_model import LinearRegression
 
     # Assuming your data is stored in x and y
-    # TODO : Reshape x to be a 2D array, as scikit-learn expects 2D inputs for the features
-    x_reshaped = None
+    x_reshaped = x.reshape(-1, 1)
 
     # Create and train the scikit-learn model
-    # TODO : Train the LinearRegression model
-    sklearn_model = None
+    sklearn_model = LinearRegression()
     sklearn_model.fit(x_reshaped, y)
 
     # Now, you can compare coefficients and intercepts between your model and scikit-learn's model
