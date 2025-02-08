@@ -56,9 +56,10 @@ class LinearRegressor:
         Returns:
             None: Modifies the model's coefficients and intercept in-place.
         """
-        # TODO: Train linear regression model with multiple coefficients
-        self.intercept = None
-        self.coefficients = None
+        X = np.concatenate([X,np.ones((X.shape[0],1))], axis = 1) #Añadimos la columna de unos
+        M = np.dot(np.dot(np.linalg.inv(np.dot(np.transpose(X),X)),np.transpose(X)),y)
+        self.intercept =  M[-1]
+        self.coefficients = M[:-1]
 
     def predict(self, X):
         """
@@ -79,8 +80,7 @@ class LinearRegressor:
         if np.ndim(X) == 1:
             predictions = np.array([self.intercept + xi*self.coefficients for xi in X])
         else:
-            # TODO: Predict when X is more than one variable
-            predictions = None
+            predictions = np.dot(X, self.coefficients) + self.intercept
         return predictions
 
 
@@ -136,35 +136,40 @@ def sklearn_comparison(x, y, linreg):
     }
 
 def anscombe_quartet():
+    """Loads Anscombe's quartet, fits custom linear regression models, and evaluates performance.
+    Returns:
+        tuple: A tuple containing:
+            - anscombe (pandas.DataFrame): The Anscombe's quartet dataset.
+            - datasets (list): A list of unique dataset identifiers in Anscombe's quartet.
+            - models (dict): A dictionary where keys are dataset identifiers and values
+              are the fitted custom linear regression models.
+            - results (dict): A dictionary containing evaluation metrics (R2, RMSE, MAE)
+              for each dataset.
+    """
     # Load Anscombe's quartet
     # These four datasets are the same as in slide 19 of chapter 02-03: Linear and logistic regression
     anscombe = sns.load_dataset("anscombe")
 
     # Anscombe's quartet consists of four datasets
-    # TODO: Construct an array that contains, for each entry, the identifier of each dataset
-    datasets = None
+    datasets = anscombe['dataset'].unique()
 
     models = {}
     results = {"R2": [], "RMSE": [], "MAE": []}
     for dataset in datasets:
 
         # Filter the data for the current dataset
-        # TODO
-        data = None
+        data = anscombe.loc[anscombe['dataset'] == dataset]
 
         # Create a linear regression model
-        # TODO
-        model = None
+        model = LinearRegressor()
 
         # Fit the model
-        # TODO
-        X = None  # Predictor, make it 1D for your custom model
-        y = None  # Response
+        X = data['x'].to_list()  # Predictor, make it 1D for your custom model
+        y = data['y'].to_list()  # Response
         model.fit_simple(X, y)
 
         # Create predictions for dataset
-        # TODO
-        y_pred = None
+        y_pred = model.predict(X)
 
         # Store the model for later use
         models[dataset] = model
@@ -183,7 +188,7 @@ def anscombe_quartet():
         results["R2"].append(evaluation_metrics["R2"])
         results["RMSE"].append(evaluation_metrics["RMSE"])
         results["MAE"].append(evaluation_metrics["MAE"])
-    return results
+    return anscombe, datasets, models, results
 
 
 # Go to the notebook to visualize the results
